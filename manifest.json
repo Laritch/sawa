@@ -1,0 +1,58 @@
+{
+  "name": "Expert Chat System",
+  "short_name": "ExpertChat",
+  "description": "Connect with experts in various fields and earn rewards through referrals",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#4F46E5",
+  "icons": [
+    {
+      "src": "/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false,
+  "shortcuts": [
+    {
+      "name": "Referral Program",
+      "short_name": "Referrals",
+      "description": "View your referral status and rewards",
+      "url": "/referrals",
+      "icons": [{ "src": "/icons/referral.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Gamification",
+      "short_name": "Rewards",
+      "description": "Check your achievements and rewards",
+      "url": "/referrals/gamification",
+      "icons": [{ "src": "/icons/rewards.png", "sizes": "96x96" }]
+    }
+  ],
+  "orientation": "portrait",
+  "categories": ["productivity", "social", "education"],
+  "screenshots": [
+    {
+      "src": "/screenshots/app-dashboard.png",
+      "sizes": "1280x720",
+      "type": "image/png"
+    },
+    {
+      "src": "/screenshots/referral-program.png",
+      "sizes": "1280x720",
+      "type": "image/png"
+    }
+  ],
+  "lang": "en-US",
+  "dir": "ltr",
+  "scope": "/"
+}
