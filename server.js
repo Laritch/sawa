@@ -1,150 +1,119 @@
-const express = require('express');
-const http = require('http');
-const { Server } = require('socket.io');
-const cors = require('cors');
-const { nanoid } = require('nanoid');
+// Netlify Serverless Function
+exports.handler = async function(event, context) {
+  try {
+    // Parse path to determine API endpoint
+    const path = event.path.replace('/.netlify/functions/server', '');
+    console.log('API path:', path);
 
-const app = express();
-app.use(cors());
-app.use(express.json());
+    // Handle different API endpoints
+    if (path === '/api/analytics') {
+      // Mock analytics data
+      const days = event.queryStringParameters?.days || 30;
 
-const server = http.createServer(app);
-const io = new Server(server, {
-  cors: {
-    origin: process.env.FRONTEND_URL || "http://localhost:3000",
-    methods: ["GET", "POST"],
-    credentials: true
-  }
-});
+      // Return mock data since we might not have database connection
+      const mockData = {
+        stats: {
+          totalUsers: 1247,
+          totalMessages: 28653,
+          newUsers: 124,
+          activeUsers: 873,
+          newMessages: 3254
+        },
+        messageActivity: {
+          daily: {
+            timeLabels: Array.from({ length: 30 }, (_, i) => {
+              const date = new Date();
+              date.setDate(date.getDate() - 29 + i);
+              return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            }),
+            messageData: Array.from({ length: 30 }, () => Math.floor(Math.random() * 500 + 200))
+          },
+          weekly: {
+            timeLabels: Array.from({ length: 12 }, (_, i) => {
+              const date = new Date();
+              date.setDate(date.getDate() - (11 * 7) + (i * 7));
+              return `Week of ${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+            }),
+            messageData: Array.from({ length: 12 }, () => Math.floor(Math.random() * 3000 + 1000))
+          },
+          monthly: {
+            timeLabels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+            messageData: Array.from({ length: 12 }, () => Math.floor(Math.random() * 10000 + 5000))
+          }
+        },
+        userGrowth: {
+          timeLabels: Array.from({ length: 12 }, (_, i) => {
+            const date = new Date();
+            date.setMonth(date.getMonth() - 11 + i);
+            return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+          }),
+          userData: Array.from({ length: 12 }, (_, i) => 100 + i * 100 + Math.floor(Math.random() * 50))
+        },
+        activityByTime: {
+          timeLabels: ['00:00', '03:00', '06:00', '09:00', '12:00', '15:00', '18:00', '21:00'],
+          activityData: [120, 85, 45, 356, 478, 512, 389, 240]
+        },
+        engagement: {
+          messages: {
+            label: 'Messages per User',
+            labels: ['1-5', '6-10', '11-20', '21-50', '51+'],
+            values: [432, 328, 276, 189, 22]
+          },
+          session: {
+            label: 'Session Duration (minutes)',
+            labels: ['<1', '1-5', '5-15', '15-30', '30+'],
+            values: [156, 289, 345, 267, 190]
+          },
+          retention: {
+            label: 'Retention Rate (%)',
+            labels: ['Day 1', 'Day 7', 'Day 14', 'Day 30', 'Day 90'],
+            values: [100, 68, 54, 43, 31]
+          }
+        },
+        contentTypes: {
+          text: 65,
+          image: 20,
+          file: 10,
+          system: 5
+        },
+        userStatus: {
+          online: 30,
+          away: 15,
+          busy: 10,
+          offline: 45
+        },
+        userDevices: {
+          desktop: 65,
+          mobile: 30,
+          tablet: 5
+        },
+        responseTimes: {
+          average: 2.5,
+          peak: 5.2,
+          offPeak: 1.8
+        }
+      };
 
-// In-memory storage for active users and sessions
-// In a production app, this would be stored in a database
-const activeUsers = new Map();
-const chatSessions = new Map();
-const messages = new Map();
+      return {
+        statusCode: 200,
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(mockData)
+      };
+    }
 
-// Socket.IO connection handler
-io.on("connection", (socket) => {
-  const userId = socket.handshake.auth.userId;
-
-  if (!userId) {
-    console.log("Connection rejected - no userId provided");
-    socket.disconnect(true);
-    return;
-  }
-
-  console.log(`User connected: ${userId}, Socket ID: ${socket.id}`);
-
-  // Register user as online
-  activeUsers.set(userId, { socketId: socket.id, status: 'online' });
-
-  // Send online status to relevant users
-  io.emit("userStatusChange", { userId, status: "online" });
-
-  // Handle join chat room
-  socket.on("joinRoom", ({ roomId }) => {
-    console.log(`User ${userId} joined room ${roomId}`);
-    socket.join(roomId);
-
-    // Get room's message history
-    const roomMessages = Array.from(messages.values())
-      .filter(msg => msg.sessionId === roomId)
-      .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-
-    // Send message history to the user
-    socket.emit("messageHistory", { messages: roomMessages });
-  });
-
-  // Handle leave chat room
-  socket.on("leaveRoom", ({ roomId }) => {
-    console.log(`User ${userId} left room ${roomId}`);
-    socket.leave(roomId);
-  });
-
-  // Handle new messages
-  socket.on("sendMessage", (message) => {
-    // Generate message ID
-    const messageId = nanoid();
-    const finalMessage = {
-      ...message,
-      id: messageId,
-      timestamp: new Date(),
-      status: "sent"
+    // Handle unexpected paths with a 404
+    return {
+      statusCode: 404,
+      body: JSON.stringify({ message: "Not Found" })
     };
 
-    // Store message
-    messages.set(messageId, finalMessage);
-
-    // Send to the room
-    if (message.sessionId) {
-      io.to(message.sessionId).emit("newMessage", finalMessage);
-    } else {
-      // Direct message to a specific user
-      const receiverSocket = activeUsers.get(message.receiverId);
-      if (receiverSocket) {
-        io.to(receiverSocket.socketId).emit("newMessage", finalMessage);
-      }
-      // Also send to sender for confirmation
-      socket.emit("newMessage", finalMessage);
-    }
-
-    // Update message status to delivered
-    finalMessage.status = "delivered";
-    messages.set(messageId, finalMessage);
-    socket.emit("messageStatus", { messageId, status: "delivered" });
-  });
-
-  // Handle typing events
-  socket.on("typing", ({ sessionId, userId, isTyping }) => {
-    socket.to(sessionId).emit("typingStatus", { userId, sessionId, isTyping });
-  });
-
-  // Handle message read receipts
-  socket.on("markAsRead", ({ messageId, userId }) => {
-    if (messages.has(messageId)) {
-      const message = messages.get(messageId);
-      message.status = "read";
-      messages.set(messageId, message);
-
-      // Notify the sender
-      const senderSocket = activeUsers.get(message.senderId);
-      if (senderSocket) {
-        io.to(senderSocket.socketId).emit("messageRead", { messageId, userId });
-      }
-    }
-  });
-
-  // Handle disconnection
-  socket.on("disconnect", () => {
-    console.log(`User disconnected: ${userId}`);
-    activeUsers.delete(userId);
-    io.emit("userStatusChange", { userId, status: "offline" });
-  });
-});
-
-// API endpoints for message management
-app.get('/api/messages/:sessionId', (req, res) => {
-  const { sessionId } = req.params;
-  const sessionMessages = Array.from(messages.values())
-    .filter(msg => msg.sessionId === sessionId)
-    .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-
-  res.json({ messages: sessionMessages });
-});
-
-app.get('/api/users/active', (req, res) => {
-  const activeUsersList = Array.from(activeUsers.entries()).map(([userId, data]) => ({
-    userId,
-    status: data.status
-  }));
-
-  res.json({ users: activeUsersList });
-});
-
-const PORT = process.env.PORT || 3001;
-server.listen(PORT, () => {
-  console.log(`Socket.IO server running on port ${PORT}`);
-});
-
-// Export for potential integration with Next.js API routes
-module.exports = { app, server, io };
+  } catch (err) {
+    console.log('Error:', err);
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ message: "Internal Server Error", error: err.toString() })
+    };
+  }
+};
