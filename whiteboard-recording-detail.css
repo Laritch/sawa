@@ -1,0 +1,148 @@
+/* Recording detail container */
+.recording-detail-container {
+  margin-top: 15px;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  overflow: hidden;
+  background-color: #fff;
+}
+
+/* Tabs navigation */
+.recording-detail-tabs {
+  display: flex;
+  background-color: #f5f5f5;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.recording-tab {
+  padding: 10px 15px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  color: #666;
+  position: relative;
+}
+
+.recording-tab:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.recording-tab.active {
+  color: #2196F3;
+}
+
+.recording-tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background-color: #2196F3;
+}
+
+/* Content sections */
+.recording-detail-content {
+  padding: 15px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.recording-detail-section {
+  display: none;
+  width: 100%;
+}
+
+.recording-detail-section.active {
+  display: block;
+}
+
+/* Info section styles */
+.recording-metadata {
+  margin-bottom: 15px;
+}
+
+.recording-title-section {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.recording-title-section h3 {
+  margin: 0;
+  font-size: 18px;
+  flex: 1;
+}
+
+.recording-category-section,
+.recording-tags-section {
+  margin-bottom: 10px;
+}
+
+.recording-metadata-field {
+  display: flex;
+  align-items: center;
+  margin-bottom: 5px;
+}
+
+.edit-title-button,
+.edit-category-button,
+.edit-tags-button {
+  background: none;
+  border: none;
+  color: #2196F3;
+  cursor: pointer;
+  margin-left: 10px;
+  padding: 4px;
+}
+
+.edit-title-button:hover,
+.edit-category-button:hover,
+.edit-tags-button:hover {
+  color: #0b7dda;
+}
+
+/* Recording statistics */
+.recording-statistics {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 15px 0;
+  padding: 10px;
+  background-color: #f9f9f9;
+  border-radius: 4px;
+}
+
+.recording-statistic {
+  flex: 0 0 auto;
+  margin-right: 20px;
+}
+
+.statistic-value {
+  font-size: 16px;
+  font-weight: bold;
+  color: #2196F3;
+}
+
+.statistic-label {
+  font-size: 12px;
+  color: #666;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .recording-detail-tabs {
+    flex-wrap: wrap;
+  }
+
+  .recording-tab {
+    flex: 1;
+    text-align: center;
+    padding: 8px;
+  }
+
+  .recording-detail-content {
+    padding: 10px;
+  }
+}
